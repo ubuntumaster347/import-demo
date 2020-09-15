@@ -8,6 +8,7 @@
 
 ################################################################################
 
+ARDUINO_VERSION := 0.13.0
 ARDUINO_URL := https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh
 
 SKETCH := Blink
@@ -76,7 +77,7 @@ endif
 
 $(BINDIR)/arduino-cli:
 	mkdir -p $(BINDIR) $(ETCDIR)
-	curl -fsSL $(ARDUINO_URL) | BINDIR=$(BINDIR) sh
+	curl -fsSL $(ARDUINO_URL) | BINDIR=$(BINDIR) sh -s $(ARDUINO_VERSION)
 
 $(ETCDIR)/arduino-cli.yaml: $(BINDIR)/arduino-cli
 	mkdir -p $(ETCDIR) $(VARDIR)
@@ -113,12 +114,12 @@ $(BUILDDIR)/$(SKETCH).ino.elf: $(BINDIR)/arduino-cli $(SRCS)
 	--fqbn $(FQBN) $(SRCDIR)
 
 build: $(BUILDDIR)/$(SKETCH).ino.elf
-	rm -f $(SRCDIR)/*.elf $(SRCDIR)/*.hex
+	rm -rf $(SRCDIR)/build
 
 upload: build
 	$(BINDIR)/arduino-cli --config-file=$(ETCDIR)/arduino-cli.yaml upload \
-	--log-file $(BUILDDIR)/upload.log --log-level debug --verbose \
-	--port $(PORT) --fqbn $(FQBN) --input $(BUILDDIR)/$(SKETCH).ino.hex
+	--log-file $(LOGDIR)/upload.log --log-level debug --verbose \
+	--port $(PORT) --fqbn $(FQBN) --input-file $(BUILDDIR)/$(SKETCH).ino.hex
 
 clean :
 	git clean -dXf

@@ -10,3 +10,6 @@ logging:
   file: ./var/log/arduino.log
   format: text
   level: info
+telemetry:
+  addr: :9090
+  enabled: true
