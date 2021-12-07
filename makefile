@@ -8,9 +8,9 @@
 
 ################################################################################
 
-ARDUINO_CLI_VERSION :=
+ARDUINO_CLI_VERSION := 0.20.1
 ARDUINO_CLI_URL := https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh
-ARDUINO_LINT_VERSION :=
+ARDUINO_LINT_VERSION := 1.2.0
 ARDUINO_LINT_URL := https://raw.githubusercontent.com/arduino/arduino-lint/main/etc/install.sh
 
 SKETCH := Blink
@@ -24,7 +24,12 @@ LIBRARIES :=
 FQBN := $(word 1, $(CORES)):$(BOARD)
 
 # Treat all warnings as errors.
-BUILDPROP := compiler.warning_flags.all='-Wall -Wextra -Werror'
+# AVR core 1.8.4 needs -Wno-unused-parameter in new.cpp.
+WARNING_FLAGS := "compiler.warning_flags.all=-Wall -Wextra -Werror -Wno-unused-parameter"
+
+# Pass GIT commit hash as version number
+GIT_COMMIT := "$(shell git describe --always --dirty --match 'NOT A TAG')"
+EXTRA_FLAGS := "compiler.cpp.extra_flags=\"-DGIT_COMMIT=\"$(GIT_COMMIT)\"\""
 
 ################################################################################
 
@@ -110,7 +115,7 @@ sketch:
 properties:
 	$(BINDIR)/arduino-cli --config-file $(ETCDIR)/arduino-cli.yaml compile \
 	--build-path $(BUILDDIR) --build-cache-path $(CACHEDIR) \
-	--build-property $(BUILDPROP) \
+	--build-property $(WARNING_FLAGS) --build-property $(EXTRA_FLAGS) \
 	--warnings all --log-file $(LOGDIR)/build.log --log-level debug --verbose \
 	--fqbn $(FQBN) $(SRCDIR) --show-properties
 
@@ -120,7 +125,7 @@ lint:
 $(BUILDDIR)/$(SKETCH).ino.elf: $(SRCS)
 	$(BINDIR)/arduino-cli --config-file $(ETCDIR)/arduino-cli.yaml compile \
 	--build-path $(BUILDDIR) --build-cache-path $(CACHEDIR) \
-	--build-property $(BUILDPROP) \
+	--build-property $(WARNING_FLAGS) --build-property $(EXTRA_FLAGS) \
 	--warnings all --log-file $(LOGDIR)/build.log --log-level debug --verbose \
 	--fqbn $(FQBN) $(SRCDIR)
 
